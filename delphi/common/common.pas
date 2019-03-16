@@ -18,6 +18,9 @@ uses
   function WaitFlgTrue(pflg:PBYTE;TimeoutMs: Longint;isClear:bool=true):integer;
   function GetStrValueFromIni(fname:string;sectionName:string;memberName:string):string;
   procedure SetStrValueToIni(fname:string;sectionName:string;memberName:string;memValue:string);
+  function GetIndexFromStrBuf(findStr:string;var strbuf: array of string;buflen: integer):integer;
+function GetBetweenCharFromStr(linestr: string;beginChar: char;endChar: char):string;
+Procedure ExportCsvFile(FileName: string;rowCnt: dword;ColCnt: dword);
   function   DynaCreateComponent(OwnerName:   TComponent;   CompType:   TControlClass;   CompName:   String;   V_Left,V_Top,V_Width,V_Height:Integer):   TControl;
 type
    TCreateComp=record
@@ -29,11 +32,17 @@ type
    visible:bool;
    Left,Top,Width,Height:Integer;
 end;
+const
+maxRow:integer=100000;
+maxCol:integer=100;
 var
 	lastTickCount: Longint;
 	ExcelVersion: string='';
   //结构体初始化//canVartest:array[0..1] of TCanVar=((name:'';messageid:123;startbit:0;),(name:'';messageid:123;startbit:0;));
 
+saveTab : array[0..100000,0..100] of string;
+    saveTabColumn:array[1..32] of string;
+    saveTabcnt:integer;
 implementation
 //动态创建控件
 function   DynaCreateComponent(OwnerName:TComponent; CompType:TControlClass; CompName:String; V_Left,V_Top,V_Width,V_Height:Integer): TControl;
@@ -291,5 +300,74 @@ if Now >= FirstTickCount+TimeoutMs then result:=-1;
 if isclear then pflg^:=0;
 end;
 
+
+Procedure ExportCsvFile(FileName: string;rowCnt: dword;ColCnt: dword);
+var
+  i, j: integer;
+  tmpstr:string;
+  Col, row: dword;
+  aFileStream: TFileStream;
+begin
+  FileName:=FileName+'.csv';
+  if FileExists(FileName) then DeleteFile(FileName); //文件存在，先删除
+  aFileStream := TFileStream.Create(FileName, fmCreate);
+  Try
+
+    Col := 0; Row := 0;
+
+    for Row:=0 to rowCnt-1 do
+    begin
+        for Col:=0 to ColCnt-1 do
+        begin
+            tmpstr:=saveTab[Row,Col]+',';
+            aFileStream.WriteBuffer(Pointer(tmpstr)^, Length(tmpstr));
+        end;
+        tmpstr:= #13#10;
+        aFileStream.WriteBuffer(Pointer(tmpstr)^, Length(tmpstr));
+    end;
+
+  finally
+    AFileStream.Free;
+  end;
+end;
+
+function GetBetweenCharFromStr(linestr: string;beginChar: char;endChar: char):string;
+var
+List: TStringList;
+tmpstr:string;
+begin
+  result:='';
+  List := TStringList.Create;
+  List.Delimiter := beginChar;
+  List.DelimitedText := linestr;
+  if list.Count =0 then exit;
+  tmpstr:=List[1];
+  list.Clear;
+  List.Delimiter := endChar;
+  List.DelimitedText := tmpstr;
+  if list.Count =0 then exit;
+  result:=List[0];
+
+end;
+
+function GetIndexFromStrBuf(findStr:string;var strbuf: array of string;buflen: integer):integer;
+var
+i:integer;
+begin
+    for i:=0 to buflen-1 do
+    begin
+        if strbuf[i]=findStr then
+        begin
+            result:=i;
+            exit;
+        end;
+        if strbuf[i]='' then
+        begin
+            strbuf[i]:=findStr;
+            result:=i;
+            exit;
+        end;
+    end;
+end;
 
 end.
