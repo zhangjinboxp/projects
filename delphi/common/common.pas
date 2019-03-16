@@ -5,7 +5,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs,  StdCtrls, ComCtrls, Grids, ValEdit, DB, ADODB,OleCtrls,ComObj,
   Menus, ToolWin, ActnMan, ActnCtrls, ActnMenus, ExtCtrls,
-  iComponent, iVCLComponent, iCustomComponent,IniFiles;
+  iComponent, iVCLComponent, iCustomComponent,IniFiles,StrUtils,Math,Registry;
 
 	procedure Delay(MSecs: Longint);
   procedure DelayFromLastCall(MSecs: Longint);
@@ -18,6 +18,8 @@ uses
   function WaitFlgTrue(pflg:PBYTE;TimeoutMs: Longint;isClear:bool=true):integer;
   function GetStrValueFromIni(fname:string;sectionName:string;memberName:string):string;
   procedure SetStrValueToIni(fname:string;sectionName:string;memberName:string;memValue:string);
+  function crc_16(var data;length:integer):WORD;
+  procedure GetComPorts(portlist:Tstrings);
   function   DynaCreateComponent(OwnerName:   TComponent;   CompType:   TControlClass;   CompName:   String;   V_Left,V_Top,V_Width,V_Height:Integer):   TControl;
 type
    TCreateComp=record
@@ -35,6 +37,48 @@ var
   //结构体初始化//canVartest:array[0..1] of TCanVar=((name:'';messageid:123;startbit:0;),(name:'';messageid:123;startbit:0;));
 
 implementation
+
+procedure GetComPorts(portlist:TStrings);
+var
+  reg: TRegistry;
+  ts: TStrings;
+  i: integer;
+begin
+  reg := TRegistry.Create;
+  reg.RootKey := HKEY_LOCAL_MACHINE;
+  reg.OpenKey('hardware\devicemap\serialcomm', False);
+  ts := TStringList.Create;
+  reg.GetValueNames(ts);
+
+  for i := 0 to ts.Count - 1 do
+  begin
+    portlist.Add(reg.ReadString(ts.Strings[i]));
+  end;
+  ts.Free;
+  reg.CloseKey;
+  reg.Free;
+end;
+function crc_16(var data;length:integer):WORD;
+var
+pdata:PBYTE;
+CRC16:Word;
+i,j:integer;
+begin
+    CRC16:=$FFFF;
+	pdata:= PBYTE(@data);
+	
+	for i := 0 to length-1 do
+    begin
+        CRC16:=CRC16 xor pdata^;
+		    for j := 0 to 7 do
+		    begin
+			    if (CRC16 and 1) = 1 then CRC16 := ( CRC16 shr 1 ) xor $A001
+			    else  CRC16 := CRC16 shr 1;
+        end;
+        inc(pdata);
+    end;
+    result:=CRC16;	
+end;
 //动态创建控件
 function   DynaCreateComponent(OwnerName:TComponent; CompType:TControlClass; CompName:String; V_Left,V_Top,V_Width,V_Height:Integer): TControl;
 begin
@@ -291,5 +335,49 @@ if Now >= FirstTickCount+TimeoutMs then result:=-1;
 if isclear then pflg^:=0;
 end;
 
+function CalCRC16(AData: array of Byte; AStart, AEnd: Integer): string;
+const
+  GENP=$A001;  //多项式公式X16+X15+X2+1（1100 0000 0000 0101）  //$A001    $8408
+var
+  crc:Word;
+  i:Integer;
+  tmp:Byte;
+  s:string;
+procedure CalOneByte(AByte:Byte);  //计算1个字节的校验码
+var
+j:Integer;
+begin
+  crc:=crc xor AByte;   //将数据与CRC寄存器的低8位进行异或
+  for j:=0 to 7 do      //对每一位进行校验
+  begin
+    tmp:=crc and 1;        //取出最低位
+    crc:=crc shr 1;        //寄存器向右移一位
+    crc:=crc and $7FFF;    //将最高位置0
+    if tmp=1 then         //检测移出的位，如果为1，那么与多项式异或
+      crc:=crc xor GENP;
+      crc:=crc and $FFFF;
+  end;
+end;
+begin
+  crc:=$FFFF;             //将余数设定为FFFF
+  for i:=AStart to AEnd do   //对每一个字节进行校验
+    CalOneByte(AData[i]);
+  s:=inttohex(crc,2);
+  Result:= rightstr(s,2)+leftstr(s,2);
+end;
 
+
+
+function strtocrc(s: string): string;
+var
+  buf1:array[0..256] of byte;
+  i:integer;
+  strOrder:string;
+  Res: string;
+begin
+  strOrder :=StringReplace(s,' ','',[rfReplaceAll]);
+  for i:=0 to (length(strOrder) div 2-1) do
+    buf1[i]:= StrToInt('$'+copy(strOrder, i*2 + 1,2)); 
+  result:=s+CalCRC16(buf1,Low(buf1),length(strOrder) div 2-1);
+end;
 end.
