@@ -1,0 +1,1 @@
+net use LPT1 \\%COMPUTERNAME%\ZDesigner105 /PERSISTENT:YES

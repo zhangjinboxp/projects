@@ -1,0 +1,213 @@
+unit regedit;
+
+interface
+uses
+Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, ExtCtrls;
+
+function GetCode():string;
+function GenerateMd5Code():string;
+
+type
+  TCPUID  = array[1..4] of Longint;
+  TVendor = array [0..11] of char;
+
+var
+  regcode:string='';
+implementation
+uses md5;
+
+
+function GetCPUID : TCPUID; assembler; register;
+asm
+  PUSH    EBX         {Save affected register}
+  PUSH    EDI
+  MOV     EDI,EAX     {@Resukt}
+  MOV     EAX,1
+  DW      $A20F       {CPUID Command}
+  STOSD               {CPUID[1]}
+  MOV     EAX,EBX
+  STOSD               {CPUID[2]}
+  MOV     EAX,ECX
+  STOSD               {CPUID[3]}
+  MOV     EAX,EDX
+  STOSD               {CPUID[4]}
+  POP     EDI         {Restore registers}
+  POP     EBX
+end;
+
+function GetCPUVendor : TVendor; assembler; register;
+asm
+  PUSH    EBX               {Save affected register}
+  PUSH    EDI
+  MOV     EDI,EAX           {@Result (TVendor)}
+  MOV     EAX,0
+  DW      $A20F             {CPUID Command}
+  MOV     EAX,EBX
+  XCHG          EBX,ECX     {save ECX result} 
+  MOV                   ECX,4
+@1: 
+  STOSB
+  SHR     EAX,8 
+  LOOP    @1
+  MOV     EAX,EDX 
+  MOV                   ECX,4
+@2: 
+  STOSB
+  SHR     EAX,8 
+  LOOP    @2
+  MOV     EAX,EBX 
+  MOV                   ECX,4
+@3: 
+  STOSB
+  SHR     EAX,8 
+  LOOP    @3
+  POP     EDI              {Restore registers} 
+  POP     EBX
+end;
+
+//获得硬盘序列号
+function GetIdeSerialNumber: pchar;
+const IDENTIFY_BUFFER_SIZE = 512;
+type
+   TIDERegs = packed record
+     bFeaturesReg: BYTE;
+     bSectorCountReg: BYTE;
+     bSectorNumberReg: BYTE;
+     bCylLowReg: BYTE;
+     bCylHighReg: BYTE;
+     bDriveHeadReg: BYTE;
+     bCommandReg: BYTE;
+     bReserved: BYTE;
+  end;
+  TSendCmdInParams = packed record
+    cBufferSize: DWORD;
+    irDriveRegs: TIDERegs;
+    bDriveNumber: BYTE;
+    bReserved: array[0..2] of Byte;
+    dwReserved: array[0..3] of DWORD;
+    bBuffer: array[0..0] of Byte; // Input buffer.
+  end;
+  TIdSector = packed record
+    wGenConfig: Word;
+    wNumCyls: Word;
+    wReserved: Word;
+    wNumHeads: Word;
+    wBytesPerTrack: Word;
+    wBytesPerSector: Word;
+    wSectorsPerTrack: Word;
+    wVendorUnique: array[0..2] of Word;
+    sSerialNumber: array[0..19] of CHAR;
+    wBufferType: Word;
+    wBufferSize: Word;
+    wECCSize: Word;
+    sFirmwareRev: array[0..7] of Char;
+    sModelNumber: array[0..39] of Char;
+    wMoreVendorUnique: Word;
+    wDoubleWordIO: Word;
+    wCapabilities: Word;
+    wReserved1: Word;
+    wPIOTiming: Word;
+    wDMATiming: Word;
+    wBS: Word;
+    wNumCurrentCyls: Word;
+    wNumCurrentHeads: Word;
+    wNumCurrentSectorsPerTrack: Word;
+    ulCurrentSectorCapacity: DWORD;
+    wMultSectorStuff: Word;
+    ulTotalAddressableSectors: DWORD;
+    wSingleWordDMA: Word;
+    wMultiWordDMA: Word;
+    bReserved: array[0..127] of BYTE;
+  end;
+  PIdSector = ^TIdSector;
+  TDriverStatus = packed record
+    bDriverError: Byte;
+    bIDEStatus: Byte;
+    bReserved: array[0..1] of Byte;
+    dwReserved: array[0..1] of DWORD;
+  end;
+  TSendCmdOutParams = packed record
+    cBufferSize: DWORD;
+    DriverStatus: TDriverStatus;
+    bBuffer: array[0..0] of BYTE;
+  end;
+var
+  hDevice: Thandle;
+  cbBytesReturned: DWORD;
+  SCIP: TSendCmdInParams;
+  aIdOutCmd: array[0..(SizeOf(TSendCmdOutParams) + IDENTIFY_BUFFER_SIZE - 1) - 1] of Byte;
+  IdOutCmd: TSendCmdOutParams absolute aIdOutCmd;
+
+procedure ChangeByteOrder(var Data; Size: Integer);
+var
+  ptr: Pchar;
+  i: Integer;
+  c: Char;
+begin
+  ptr := @Data;
+  for I := 0 to (Size shr 1) - 1 do begin
+    c := ptr^;
+    ptr^ := (ptr + 1)^;
+    (ptr + 1)^ := c;
+    Inc(ptr, 2);
+  end;
+end;
+begin
+Result := '';
+if SysUtils.Win32Platform = VER_PLATFORM_WIN32_NT then begin
+hDevice := CreateFile('//./PhysicalDrive0', GENERIC_READ or GENERIC_WRITE,
+FILE_SHARE_READ or FILE_SHARE_WRITE, nil, OPEN_EXISTING, 0, 0);
+end else
+hDevice := CreateFile('//./SMARTVSD', 0, 0, nil, CREATE_NEW, 0, 0);
+if hDevice = INVALID_HANDLE_VALUE then Exit;
+try
+FillChar(SCIP, SizeOf(TSendCmdInParams) - 1, #0);
+FillChar(aIdOutCmd, SizeOf(aIdOutCmd), #0);
+cbBytesReturned := 0;
+with SCIP do begin
+cBufferSize := IDENTIFY_BUFFER_SIZE;
+with irDriveRegs do begin
+bSectorCountReg := 1;
+bSectorNumberReg := 1;
+bDriveHeadReg := $A0;
+bCommandReg := $EC;
+end;
+end;
+if not DeviceIoControl(hDevice, $0007C088, @SCIP, SizeOf(TSendCmdInParams) - 1,
+@aIdOutCmd, SizeOf(aIdOutCmd), cbBytesReturned, nil) then Exit;
+finally
+CloseHandle(hDevice);
+end;
+with PIdSector(@IdOutCmd.bBuffer)^ do begin
+ChangeByteOrder(sSerialNumber, SizeOf(sSerialNumber));
+(Pchar(@sSerialNumber) + SizeOf(sSerialNumber))^ := #0;
+Result := Pchar(@sSerialNumber);
+end;
+end;
+
+function GetCode():string;//提取机器码。
+var
+  CPUID:TCPUID;
+  i:Integer;
+  s1,s2,s3,s4,s5:string;
+begin
+      result:=RegCode;
+      if RegCode<>'' then exit;
+      for i:=Low(CPUID) to High(CPUID) do CPUID[i]:=-1;
+      CPUID:=GetCPUID;
+      s1:=IntToHex(CPUID[1],8);
+      s2:=IntToHex(CPUID[2],8);
+      s3:=IntToHex(CPUID[3],8);
+      s4:=IntToHex(CPUID[4],8);
+      s5:=trim(strpas(GetIdeSerialNumber));
+      RegCode:=copy(s3,1,4)+copy(s5,5,4)+copy(s3,1,4)+copy(s1,1,4)+copy(s4,5,4)+copy(s5,1,4)+copy(s4,1,4)+copy(s1,5,4)+copy(s3,5,4)+copy(s2,5,4);
+      //GetCode:=md5.sMD5.MD5(RegCode);
+      result:=RegCode;
+end;
+function GenerateMd5Code():string;
+begin
+    result:=md5.sMD5.MD5(RegCode);
+end;
+
+end.
