@@ -1,6 +1,6 @@
 object ftest: Tftest
-  Left = 245
-  Top = 80
+  Left = 240
+  Top = 108
   BorderStyle = bsNone
   Caption = 'ftest'
   ClientHeight = 600
@@ -60,49 +60,34 @@ object ftest: Tftest
       CenterLabelFont.Style = [fsBold]
     end
     object Button2: TButton
-      Left = 616
+      Left = 656
       Top = 8
       Width = 75
       Height = 25
       Caption = #20018#21475#37197#32622
       TabOrder = 1
+      Visible = False
       OnClick = Button2Click
     end
     object Button3: TButton
-      Left = 696
+      Left = 736
       Top = 8
       Width = 81
       Height = 25
       Caption = #35835#19978#27425#21442#25968
       TabOrder = 2
+      Visible = False
       OnClick = Button3Click
     end
-    object Button4: TButton
-      Left = 696
-      Top = 32
-      Width = 75
-      Height = 25
-      Caption = #20889#31243#24207#21495'2'
-      TabOrder = 3
-      OnClick = Button4Click
-    end
     object Button6: TButton
-      Left = 616
+      Left = 736
       Top = 32
       Width = 75
       Height = 25
       Caption = #25171#21360#27979#35797
-      TabOrder = 4
+      TabOrder = 3
+      Visible = False
       OnClick = Button6Click
-    end
-    object Button7: TButton
-      Left = 536
-      Top = 32
-      Width = 75
-      Height = 25
-      Caption = #35835#25152#26377#21442#25968
-      TabOrder = 5
-      OnClick = Button7Click
     end
   end
   object Panel1: TPanel
@@ -113,7 +98,7 @@ object ftest: Tftest
     Align = alTop
     TabOrder = 1
     object Label1: TLabel
-      Left = 384
+      Left = 336
       Top = 16
       Width = 209
       Height = 49
@@ -592,6 +577,26 @@ object ftest: Tftest
         82}
       Stretch = True
     end
+    object BitBtn2: TBitBtn
+      Left = 800
+      Top = 0
+      Width = 17
+      Height = 25
+      TabOrder = 0
+      OnClick = BitBtn2Click
+    end
+    object Memo2: TMemo
+      Left = 408
+      Top = -40
+      Width = 385
+      Height = 137
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
+      Lines.Strings = (
+        '')
+      ScrollBars = ssBoth
+      TabOrder = 1
+      Visible = False
+    end
   end
   object GroupBox1: TGroupBox
     Left = 16
@@ -705,6 +710,7 @@ object ftest: Tftest
       Font.Height = -15
       Font.Name = #26032#23435#20307
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ParentFont = False
       ReadOnly = True
       TabOrder = 1
@@ -721,6 +727,7 @@ object ftest: Tftest
       Font.Height = -21
       Font.Name = #26032#23435#20307
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ParentFont = False
       ReadOnly = True
       TabOrder = 2
@@ -737,6 +744,7 @@ object ftest: Tftest
       Font.Height = -21
       Font.Name = #26032#23435#20307
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ParentFont = False
       ReadOnly = True
       TabOrder = 3
@@ -753,6 +761,7 @@ object ftest: Tftest
       Font.Height = -15
       Font.Name = #26032#23435#20307
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ParentFont = False
       ReadOnly = True
       TabOrder = 4
@@ -769,6 +778,7 @@ object ftest: Tftest
       Font.Height = -15
       Font.Name = #26032#23435#20307
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ParentFont = False
       ReadOnly = True
       TabOrder = 5
@@ -937,9 +947,9 @@ object ftest: Tftest
       TabOrder = 2
     end
     object iLedRectangle1: TiLedRectangle
-      Left = 24
+      Left = 16
       Top = 112
-      Width = 305
+      Width = 369
       Height = 33
       Active = True
       CenterLabelText = 'READY(OK)'
@@ -1060,6 +1070,7 @@ object ftest: Tftest
       Font.Height = -19
       Font.Name = 'MS Sans Serif'
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ItemHeight = 24
       ParentFont = False
       TabOrder = 0
@@ -1078,11 +1089,18 @@ object ftest: Tftest
       Font.Height = -19
       Font.Name = 'MS Sans Serif'
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ItemHeight = 24
       ParentFont = False
       TabOrder = 1
       OnChange = ComboBox1Change
       OnKeyUp = ComboBox1KeyUp
     end
+  end
+  object Timer1: TTimer
+    Enabled = False
+    OnTimer = Timer1Timer
+    Left = 440
+    Top = 288
   end
 end

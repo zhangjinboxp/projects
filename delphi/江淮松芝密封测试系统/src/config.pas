@@ -45,6 +45,7 @@ type
     Label8: TLabel;
     RzButton5: TRzButton;
     RzButton6: TRzButton;
+    LabeledEdit7: TLabeledEdit;
     procedure FormCreate(Sender: TObject);
     procedure RzButton4Click(Sender: TObject);
     procedure RzButton1Click(Sender: TObject);
@@ -65,6 +66,7 @@ type
     procedure RzButton3Click(Sender: TObject);
     procedure RzButton5Click(Sender: TObject);
     procedure RzButton6Click(Sender: TObject);
+    procedure LabeledEdit7Change(Sender: TObject);
   private
     { Private declarations }
   public
@@ -298,7 +300,10 @@ end;
 
 procedure Tfconfig.RzButton3Click(Sender: TObject);
 begin
+dbio.ADOQuery1.edit;
 dbedit5.Text:=Format('%.4d',[0]) ;
+dbio.ADOQuery1.post;
+//dbio.ADOQuery1.UpdateBatch();
 end;
 
 procedure Tfconfig.RzButton5Click(Sender: TObject);
@@ -325,6 +330,18 @@ begin
        readADOQuery(dbio.ADOQuery1,'select * from config');
      end;
 
+end;
+
+procedure Tfconfig.LabeledEdit7Change(Sender: TObject);
+begin
+    if LabeledEdit7.Text='' then
+  begin
+      readADOQuery(dbio.ADOQuery1,'select * from config');
+  end
+  else
+  begin
+   readADOQuery(dbio.ADOQuery1,'select * from config where productName like '+Quotedstr('%'+LabeledEdit7.Text+'%'));
+  end;
 end;
 
 end.

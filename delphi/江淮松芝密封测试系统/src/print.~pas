@@ -202,7 +202,7 @@ begin
     begin
         LabeledEdit3.Text := FieldByName('supplierCode').Asstring;
         LabeledEdit2.Text := FieldByName('materialNum').Asstring;
-        LabeledEdit4.Text := FieldByName('serial1').Asstring;
+        //dbedit1.Text := FieldByName('serial1').Asstring;
         LabeledEdit6.Text := FieldByName('increaseValue').Asstring;
     end;
 end;

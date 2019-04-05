@@ -47,7 +47,7 @@ begin
    if sciComs[sciCom.ItemIndex].sciPort=nil then
    begin
        sciComs[sciCom.ItemIndex].sciPort:=TComm.Create(Self);
-       //sciComs[sciCom.ItemIndex].sciPort.ByteSize:=_8;
+       sciComs[sciCom.ItemIndex].sciPort.ByteSize:=_8;
        sciComs[sciCom.ItemIndex].sciPort.ParityCheck:=true;
        sciComs[sciCom.ItemIndex].sciPort.Parity:=TParity(Parity.ItemIndex);
        sciComs[sciCom.ItemIndex].sciPort.Inx_XonXoffFlow := False;
@@ -60,6 +60,8 @@ begin
    end;
    sciComs[sciCom.ItemIndex].sciPort.CommName:= scicom.Text;
    sciComs[sciCom.ItemIndex].sciPort.BaudRate:= strtoint(baut.Text);
+   setStrValueToIni('config.ini','SCI','portName',scicom.Text);
+   setStrValueToIni('config.ini','SCI','baud',baut.Text);
    sciComs[sciCom.ItemIndex].ctrlButtonClick;
    pActiveSci:=@sciComs[sciCom.ItemIndex];
    if sciComs[sciCom.ItemIndex].isOn then commForm.Close;
@@ -75,30 +77,24 @@ end;
 
 
 procedure TcommForm.FormCreate(Sender: TObject);
+var
+configComname,Baud:string;
 begin
     sciCOM.Items.Clear;
     GetComPorts(sciCOM.Items);
     sciCOM.ItemIndex:=0;
-     {
-    if MotCtrlPort<> '' then
+    configComname:=GetStrValueFromIni('config.ini','SCI','portName');
+    Baud:=GetStrValueFromIni('config.ini','SCI','baud');
+
+    if (configComname<> '') and (Baud<> '') then
     begin
-       sciCOM.ItemIndex:= sciCOM.Items.IndexOf(MotCtrlPort);
-       Baut.ItemIndex:= Baut.Items.IndexOf(MotCtrlBaud);
+       sciCOM.ItemIndex:= sciCOM.Items.IndexOf(configComname);
+       Baut.ItemIndex:= Baut.Items.IndexOf(Baud);
        scibtn.Click;
 
-       pSciMotCtrl:=@sciComs[sciCom.ItemIndex];
-       fmain.sciMotInitial;
+       pActiveSci:=@sciComs[sciCom.ItemIndex];
     end;
-    if TorqueSensorPort<> '' then
-    begin
-       sciCOM.ItemIndex:= sciCOM.Items.IndexOf(TorqueSensorPort);
-       Baut.ItemIndex:= Baut.Items.IndexOf(TorqueSensorBaud);
-       scibtn.Click;
 
-       pSciTorqueSensor:=@sciComs[sciCom.ItemIndex];
-       fmain.sciTorqueInitial;
-    end;
-     }
 end;
 
 

@@ -26,6 +26,7 @@ uses
   function   DynaCreateComponent(OwnerName:   TComponent;   CompType:   TControlClass;   CompName:   String;   V_Left,V_Top,V_Width,V_Height:Integer):   TControl;
   function Swap16(const Value: Word): Word;
   function Swap32(const Value: LongWord): LongWord;
+  function isBitSet(const Value: DWord;bitPos: BYTE): boolean;
   procedure memset(Var buf; value:BYTE;len:integer);
   type
    TCreateComp=record
@@ -480,7 +481,14 @@ procedure memset(Var buf; value:BYTE;len:integer);
 var
 pData:PCHAR;
 begin
-pData:=PCHAR(@buf);
-fillchar(pData, len, value);
+fillchar(buf, len, value);
 end;
+
+
+function isBitSet(const Value: DWord;bitPos: BYTE):boolean;
+begin
+    result:=false;
+    if (Value and (1 shl bitPos))>0 then result:=true;
+end;
+
 end.

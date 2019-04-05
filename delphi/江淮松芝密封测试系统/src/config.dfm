@@ -1,6 +1,6 @@
 object fconfig: Tfconfig
-  Left = 257
-  Top = 42
+  Left = 336
+  Top = 41
   Width = 834
   Height = 638
   Caption = 'fconfig'
@@ -722,6 +722,7 @@ object fconfig: Tfconfig
       Font.Height = -24
       Font.Name = #26032#23435#20307
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ParentFont = False
       TabOrder = 6
       OnKeyUp = DBEdit2KeyUp
@@ -738,6 +739,7 @@ object fconfig: Tfconfig
       Font.Height = -24
       Font.Name = #26032#23435#20307
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ParentFont = False
       TabOrder = 7
     end
@@ -753,6 +755,7 @@ object fconfig: Tfconfig
       Font.Height = -24
       Font.Name = #26032#23435#20307
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ParentFont = False
       TabOrder = 8
     end
@@ -768,6 +771,7 @@ object fconfig: Tfconfig
       Font.Height = -24
       Font.Name = #26032#23435#20307
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ParentFont = False
       TabOrder = 9
     end
@@ -783,6 +787,7 @@ object fconfig: Tfconfig
       Font.Height = -24
       Font.Name = #26032#23435#20307
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ParentFont = False
       TabOrder = 10
     end
@@ -798,6 +803,7 @@ object fconfig: Tfconfig
       Font.Height = -24
       Font.Name = #26032#23435#20307
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ParentFont = False
       TabOrder = 11
     end
@@ -813,6 +819,7 @@ object fconfig: Tfconfig
       Font.Height = -24
       Font.Name = #26032#23435#20307
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ParentFont = False
       TabOrder = 12
     end
@@ -858,10 +865,10 @@ object fconfig: Tfconfig
     Color = clSkyBlue
     TabOrder = 2
     object BitBtn1: TBitBtn
-      Left = 616
+      Left = 632
       Top = 32
-      Width = 129
-      Height = 41
+      Width = 153
+      Height = 49
       Caption = #36820#22238
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clFuchsia
@@ -873,9 +880,9 @@ object fconfig: Tfconfig
       OnClick = BitBtn1Click
     end
     object LabeledEdit1: TLabeledEdit
-      Left = 128
-      Top = 24
-      Width = 209
+      Left = 168
+      Top = 16
+      Width = 201
       Height = 37
       EditLabel.Width = 118
       EditLabel.Height = 24
@@ -902,8 +909,8 @@ object fconfig: Tfconfig
     object RzButton2: TRzButton
       Left = 400
       Top = 32
-      Width = 129
-      Height = 33
+      Width = 153
+      Height = 41
       Caption = #21024#38500#36873#20013#34892
       Color = clSilver
       Font.Charset = DEFAULT_CHARSET
@@ -914,6 +921,33 @@ object fconfig: Tfconfig
       ParentFont = False
       TabOrder = 2
       OnClick = RzButton2Click
+    end
+    object LabeledEdit7: TLabeledEdit
+      Left = 168
+      Top = 64
+      Width = 201
+      Height = 33
+      EditLabel.Width = 160
+      EditLabel.Height = 24
+      EditLabel.Caption = #20135#21697#21517#31216#25628#32034#65306'  '
+      EditLabel.Color = clSkyBlue
+      EditLabel.Font.Charset = DEFAULT_CHARSET
+      EditLabel.Font.Color = clWindowText
+      EditLabel.Font.Height = -19
+      EditLabel.Font.Name = 'MS Sans Serif'
+      EditLabel.Font.Style = [fsBold]
+      EditLabel.ParentColor = False
+      EditLabel.ParentFont = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -24
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
+      LabelPosition = lpLeft
+      ParentFont = False
+      TabOrder = 3
+      OnChange = LabeledEdit7Change
     end
   end
   object Panel4: TPanel

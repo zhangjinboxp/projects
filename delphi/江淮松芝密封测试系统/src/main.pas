@@ -71,6 +71,8 @@ end;
 procedure Tfmain.Button5Click(Sender: TObject);
 begin
     application.Terminate;
+    SendMessage(Self.Handle,WM_CLose,0,0);
+    ExitProcess(0);
 end;
 
 procedure Tfmain.Button4Click(Sender: TObject);

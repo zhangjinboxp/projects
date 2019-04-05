@@ -49,13 +49,13 @@ end;
 Const   Orignwidth=800;   Orignheight=600;
 procedure Tfmain.FormCreate(Sender: TObject);
 begin
-    scaled:=true;
+ {   scaled:=true;
   if (screen.width<>orignwidth) then  
   begin    
     height:=longint(height)*longint(screen.height)div orignheight; 
     width:=longint(width)*longint(screen.width)div orignwidth;    
     scaleby(screen.width,orignwidth);
-  end;
+  end;  }
 end;
 
 procedure Tfmain.Button1Click(Sender: TObject);
@@ -71,6 +71,7 @@ end;
 procedure Tfmain.Button5Click(Sender: TObject);
 begin
     application.Terminate;
+    SendMessage(Self.Handle,WM_CLose,0,0);
 end;
 
 procedure Tfmain.Button4Click(Sender: TObject);

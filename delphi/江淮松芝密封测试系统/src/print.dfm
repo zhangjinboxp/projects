@@ -520,14 +520,16 @@ object fprint: Tfprint
       Stretch = True
     end
     object Memo1: TMemo
-      Left = 704
-      Top = 16
+      Left = 544
+      Top = 24
       Width = 233
       Height = 49
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       Lines.Strings = (
         'Memo1')
       ScrollBars = ssBoth
       TabOrder = 0
+      Visible = False
     end
   end
   object Panel2: TPanel
@@ -705,6 +707,7 @@ object fprint: Tfprint
       Font.Height = -29
       Font.Name = #26032#23435#20307
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ParentFont = False
       TabOrder = 5
     end
@@ -720,8 +723,10 @@ object fprint: Tfprint
       Font.Height = -29
       Font.Name = #26032#23435#20307
       Font.Style = []
+      ImeName = #20013#25991'('#31616#20307') - '#25628#29399#25340#38899#36755#20837#27861
       ParentFont = False
       TabOrder = 6
+      Visible = False
     end
   end
   object Panel3: TPanel
@@ -734,7 +739,7 @@ object fprint: Tfprint
     TabOrder = 2
     object BitBtn1: TBitBtn
       Left = 624
-      Top = 12
+      Top = 20
       Width = 169
       Height = 49
       Caption = #36864#20986
@@ -749,7 +754,7 @@ object fprint: Tfprint
     end
     object Button5: TButton
       Left = 440
-      Top = 12
+      Top = 20
       Width = 161
       Height = 49
       Caption = #25171#21360
