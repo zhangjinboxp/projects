@@ -17,6 +17,7 @@ uses
 	function hexSpaceStringToByteArray(hexstring: string;Var bytearray;len:integer):integer;
   function WaitFlgTrue(pflg:PBYTE;TimeoutMs: Longint;isClear:bool=true):integer;
   function GetStrValueFromIni(fname:string;sectionName:string;memberName:string):string;
+  procedure GetSectionsFromIni(fname:string;strs:Tstrings);
   procedure SetStrValueToIni(fname:string;sectionName:string;memberName:string;memValue:string);
   function crc_16(var data;length:integer):WORD;
   procedure GetComPorts(portlist:Tstrings);
@@ -133,6 +134,23 @@ begin
               ControlList.Add(V_Point);
           end;   
   TButton(ControlList.Items[i]).Caption   :=   'XXXX';}
+end;
+
+procedure GetSectionsFromIni(fname:string;strs:Tstrings);
+var
+myinifile   : TIniFile;
+fpath   :string;
+intValue    :Integer;
+strValue   :string;
+begin
+try
+  fpath  := ExtractFilePath(Paramstr(0)) + fname;        //获取当前路径+文件名
+  myinifile := Tinifile.Create(fpath);                         //创建文件
+  myinifile.readsections(strs);
+except
+  ShowMessage('打开配置文件'+fname+'失败');
+  Exit;
+end;
 end;
 
 function GetStrValueFromIni(fname:string;sectionName:string;memberName:string):string;
@@ -330,12 +348,15 @@ for i:=0 to len-1 do
     end;
 
 end;
-
+var
+isbusy:integer=0;
 function WaitFlgTrue(pflg:PBYTE;TimeoutMs: Longint;isClear:bool=true):integer;
 var
 FirstTickCount, Now: Longint;
 begin
+if isbusy=1 then exit;
 FirstTickCount := GetTickCount();
+isbusy:=1;
 repeat
 Application.ProcessMessages;
 Now := GetTickCount();
@@ -343,6 +364,7 @@ until (Now >= FirstTickCount+TimeoutMs) or (pflg^=1);
 if pflg^=1 then result:=0;
 if Now >= FirstTickCount+TimeoutMs then result:=-1;
 if isclear then pflg^:=0;
+isbusy:=0;
 end;
 
 function CalCRC16(AData: array of Byte; AStart, AEnd: Integer): string;
