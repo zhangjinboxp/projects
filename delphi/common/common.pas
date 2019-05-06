@@ -6,7 +6,9 @@ uses
   Dialogs,  StdCtrls, ComCtrls, Grids, ValEdit, DB, ADODB,OleCtrls,ComObj,
   Menus, ToolWin, ActnMan, ActnCtrls, ActnMenus, ExtCtrls,
   iComponent, iVCLComponent, iCustomComponent,IniFiles,StrUtils,Math,Registry;
-
+type
+    TwoDimStrArray = array of array of string;
+    StrArray = array of string;
 	procedure Delay(MSecs: Longint);
   procedure DelayFromLastCall(MSecs: Longint);
 	procedure readADOQuery(qry: TADOQuery;strsql:string);
@@ -21,7 +23,8 @@ uses
   procedure SetStrValueToIni(fname:string;sectionName:string;memberName:string;memValue:string);
   function crc_16(var data;length:integer):WORD;
   procedure GetComPorts(portlist:Tstrings);
-  Procedure ExportCsvFile(FileName: string;rowCnt: dword;ColCnt: dword);
+  Procedure ExportCsvFile(FileName: string;infoTab:TwoDimStrArray;rowCnt: dword;ColCnt: dword);
+  Procedure ExportExcelFile(excelname: string;SheetName: string;infoTab:TwoDimStrArray;rowCnt: dword;ColCnt: dword);
   function GetIndexFromStrBuf(findStr:string;var strbuf: array of string;buflen: integer):integer;
   function GetBetweenCharFromStr(linestr: string;beginChar: char;endChar: char):string;
   function   DynaCreateComponent(OwnerName:   TComponent;   CompType:   TControlClass;   CompName:   String;   V_Left,V_Top,V_Width,V_Height:Integer):   TControl;
@@ -35,12 +38,13 @@ type
    visible:bool;
    Left,Top,Width,Height:Integer;
 end;
+
 const
 maxRow:integer=100000;
 maxCol:integer=100;
   
 var
-saveTab : array[0..100000,0..100] of string;
+saveTab : TwoDimStrArray;
     saveTabColumn:array[1..32] of string;
     saveTabcnt:integer;
 	lastTickCount: Longint;
@@ -48,6 +52,145 @@ saveTab : array[0..100000,0..100] of string;
   //结构体初始化//canVartest:array[0..1] of TCanVar=((name:'';messageid:123;startbit:0;),(name:'';messageid:123;startbit:0;));
 
 implementation
+
+Procedure ExportCsvFile(FileName: string;infoTab:TwoDimStrArray;rowCnt: dword;ColCnt: dword);
+var
+  i, j: integer;
+  tmpstr:string;
+  Col, row: dword;
+  aFileStream: TFileStream;
+begin
+  FileName:=FileName+'.csv';
+  if FileExists(FileName) then DeleteFile(FileName); //文件存在，先删除
+  aFileStream := TFileStream.Create(FileName, fmCreate);
+  Try
+
+    Col := 0; Row := 0;
+
+    for Row:=0 to rowCnt-1 do
+    begin
+        for Col:=0 to ColCnt-1 do
+        begin
+            tmpstr:=infoTab[Row,Col]+',';
+            aFileStream.WriteBuffer(Pointer(tmpstr)^, Length(tmpstr));
+        end;
+        tmpstr:= #13#10;
+        aFileStream.WriteBuffer(Pointer(tmpstr)^, Length(tmpstr));
+    end;
+
+  finally
+    AFileStream.Free;
+  end;
+end;
+
+Procedure ExportExcelFile(excelname: string;SheetName: string;infoTab:TwoDimStrArray;rowCnt: dword;ColCnt: dword);
+var
+  i, j,m,n, index: Integer;
+  Fxls,XLApp: Variant;
+  Sheet: Variant;
+  sheetnum,sheetindex: Integer;
+  shname:string;
+  WorkSheet: OleVariant;
+  FSetting : TFormatSettings;
+  arrData: Variant;
+  Range: OLEVariant;
+  Col,row,sheetrow,maxRow: dword;
+begin
+  if not VarIsEmpty(XLApp) then
+  begin
+    XLApp.DisplayAlerts := False;
+    XLApp.Quit;
+    VarClear(XLApp);
+  end;
+
+  try
+    XLApp := CreateOleObject('Excel.Application');
+
+    XLApp.Visible := False
+  except
+    Exit;
+  end;
+
+  if XLApp.version='11.0' then //Excel2003及早期的版本
+  begin
+     maxRow:=65535;
+     excelname:=excelname+'.xls';
+  end
+  else
+  begin
+     maxRow:=1048575;
+     excelname:=excelname+'.xlsx';
+  end;
+
+  if FileExists(excelname) then
+  begin
+    Fxls:=XLApp.WorkBooks.Open(excelname);
+    WorkSheet:=XLApp.WorkBooks[1].WorkSheets.add;
+    sheetnum:= XLApp.WorkBooks[1].WorkSheets.count-1;
+    myprint('当前表单数量：'+inttostr(XLApp.WorkBooks[1].WorkSheets.count));
+
+  end
+  else
+  begin
+    Fxls:=XLApp.WorkBooks.Add;
+    XLApp.SheetsInNewWorkbook := 2;
+    WorkSheet:=XLApp.WorkBooks[1].WorkSheets[1];
+    sheetindex:=0;
+  end;
+
+    WorkSheet.Name := sheetname;
+    XLApp.WorkSheets[sheetname].Activate;
+    Sheet := XLApp.Workbooks[1].WorkSheets[sheetname];
+    
+    arrData := VarArrayCreate([1, rowCnt,1, ColCnt], varVariant);
+    sheetrow:=0;
+
+    for Row:=0 to rowCnt-1 do
+    begin
+        inc(sheetrow);
+        if sheetrow>MaxRow then
+        begin
+             Range := Sheet.Range[Sheet.Cells[1,1],
+                         Sheet.Cells[MaxRow, ColCnt]];
+
+             Range.Value:= arrData;
+             inc(sheetindex);
+             shname:=sheetname+'('+inttostr(sheetindex)+')';
+             WorkSheet:=XLApp.WorkBooks[1].WorkSheets.add;
+             myprint('add a sheet '+shname);
+             WorkSheet.Name :=shname;
+             Sheet := XLApp.Workbooks[1].WorkSheets[WorkSheet.Name];
+
+             for i:=0 to ColCnt-1 do arrData[1,i+1]:=infoTab[0,i];
+             sheetrow:=sheetrow-MaxRow+1;
+        end;
+
+        for Col:=0 to ColCnt-1 do
+        begin
+            if rowCnt<1000 then Sheet.Cells[Row+1,Col+1] := infoTab[Row,Col]
+            else arrData[sheetrow,Col+1] := infoTab[Row,Col];
+        end;
+    end;
+    if rowCnt>1000 then
+    begin
+       Range := Sheet.Range[Sheet.Cells[1,1],
+                         Sheet.Cells[sheetrow, ColCnt]];
+       Range.Value:= arrData;
+    end;
+
+
+  XLApp.ActiveWorkBook.Saved:=True;
+
+
+  XLApp.DisplayAlerts:=false;;
+  XLApp.ActiveWorkBook.SaveAs(excelname);
+  XlApp.Quit;
+  XlApp := Unassigned;
+  showmessage('已导出！');
+
+end;
+
+
 
 procedure GetComPorts(portlist:TStrings);
 var
@@ -411,36 +554,6 @@ begin
   for i:=0 to (length(strOrder) div 2-1) do
     buf1[i]:= StrToInt('$'+copy(strOrder, i*2 + 1,2)); 
   result:=s+CalCRC16(buf1,Low(buf1),length(strOrder) div 2-1);
-end;
-
-Procedure ExportCsvFile(FileName: string;rowCnt: dword;ColCnt: dword);
-var
-  i, j: integer;
-  tmpstr:string;
-  Col, row: dword;
-  aFileStream: TFileStream;
-begin
-  FileName:=FileName+'.csv';
-  if FileExists(FileName) then DeleteFile(FileName); //文件存在，先删除
-  aFileStream := TFileStream.Create(FileName, fmCreate);
-  Try
-
-    Col := 0; Row := 0;
-
-    for Row:=0 to rowCnt-1 do
-    begin
-        for Col:=0 to ColCnt-1 do
-        begin
-            tmpstr:=saveTab[Row,Col]+',';
-            aFileStream.WriteBuffer(Pointer(tmpstr)^, Length(tmpstr));
-        end;
-        tmpstr:= #13#10;
-        aFileStream.WriteBuffer(Pointer(tmpstr)^, Length(tmpstr));
-    end;
-
-  finally
-    AFileStream.Free;
-  end;
 end;
 
 function GetBetweenCharFromStr(linestr: string;beginChar: char;endChar: char):string;
